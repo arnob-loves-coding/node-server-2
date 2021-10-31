@@ -64,13 +64,16 @@ async function run() {
       console.log(result);
       res.send(result);
     });
-
-    // listening
-    app.listen(port, () => {
-      console.log("listening port number", port);
-    });
   } finally {
     // await client.close();
   }
 }
 run().catch(console.dir);
+app.get("/", (req, res) => {
+  res.send("server running");
+  console.log("server running");
+});
+// listening
+app.listen(port, () => {
+  console.log("listening port number", port);
+});
