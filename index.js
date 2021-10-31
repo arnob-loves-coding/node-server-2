@@ -1,0 +1,76 @@
+// import
+const express = require("express");
+const app = express();
+const port = 5000;
+const cors = require("cors");
+const { MongoClient } = require("mongodb");
+const ObjectId = require("mongodb").ObjectId;
+
+// middleware
+app.use(cors());
+app.use(express.json());
+
+// database connect
+const uri =
+  "mongodb+srv://Arnob:6vSMAqqvQzhZFkxK@cluster0.gopne.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// api
+async function run() {
+  try {
+    await client.connect();
+    const collection = client.db("practice").collection("practiceCollection");
+
+    // GET api
+    app.get("/users", async (req, res) => {
+      const cursor = await collection.find({}).toArray();
+      res.json(cursor);
+    });
+    app.get("/users/:id", async (req, res) => {
+      const query = { _id: ObjectId(req.params.id) };
+      const result = await collection.findOne(query);
+      console.log(result);
+      res.send(result);
+    });
+
+    // PUT api
+    app.put("/users/:id", async (req, res) => {
+      const info = req.body;
+      const filter = { _id: ObjectId(req.params.id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: info.name,
+          email: info.email,
+        },
+      };
+      const result = collection.updateOne(filter, updateDoc, options);
+    });
+
+    // POST api
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const result = await collection.insertOne(newUser);
+      res.json(result);
+    });
+
+    // DELETE api
+    app.delete("/users/:id", async (req, res) => {
+      const query = { _id: ObjectId(req.params.id) };
+      const result = await collection.deleteOne(query);
+      console.log(result);
+      res.send(result);
+    });
+
+    // listening
+    app.listen(port, () => {
+      console.log("listening port number", port);
+    });
+  } finally {
+    // await client.close();
+  }
+}
+run().catch(console.dir);
